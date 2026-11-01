@@ -185,6 +185,14 @@
   .card.sel .tile svg .f { fill:#1447e6; }
   .card.sel .tile svg .fs { fill:#1447e6; stroke:#fff; }
   .card.sel .tile svg .d { stroke:#fff; }
+  /* Multi-select: a checkbox in each card's corner */
+  .card { position:relative; }
+  .card .tick { position:absolute; top:21px; right:12px; width:22px; height:22px; border-radius:6px; border:2px solid #d4d4d4;
+    display:grid; place-items:center; transition:background .15s, border-color .15s; }
+  .card .tick svg { opacity:0; transform:scale(.6); transition:opacity .15s, transform .15s; }
+  .card.sel .tick { top:20px; right:11px; background:#1447e6; border-color:#1447e6; }
+  .card.sel .tick svg { opacity:1; transform:none; }
+  .re-title { left:16px; top:140px; width:328px; height:40px; font:700 26px/40px Inter; letter-spacing:-.4px; }
   .shake { animation:shake .35s ease; }
   @keyframes shake { 20%,60% { transform:translateX(-6px); } 40%,80% { transform:translateX(6px); } }
 
@@ -327,7 +335,7 @@ const REASONS = [
     icon: '<circle class="f" cx="12" cy="12" r="9"/><path class="d" d="m8.5 12 2.5 2.5 4.5-4.5"/>' },
 ];
 
-const fresh = () => ({ cases: '', loose: '', focus: 'cases', counted: null, reason: null, cd: '', cdState: '',
+const fresh = () => ({ cases: '', loose: '', focus: 'cases', counted: null, reasons: [], cd: '', cdState: '',
   status: null, scanBin: BIN });
 let S = fresh();
 
@@ -434,10 +442,12 @@ const screens = {
   },
   reason: {
     img: 'Count bin-2.png', label: '4 · Add reason',
-    ov: `<div class="ov" id="reLess" style="left:130px;top:114px;width:150px;height:22px;padding-left:3px;font:600 14px/22px Inter;color:#e7000b"></div>
+    ov: `<div class="ov re-title">Pick all that apply</div>
+         <div class="ov" id="reLess" style="left:130px;top:114px;width:150px;height:22px;padding-left:3px;font:600 14px/22px Inter;color:#e7000b"></div>
          <div class="crop" style="left:16px;top:564px;width:328px;height:56px;background-image:url('${encodeURI('Count bin-3.png')}');background-position:-16px -564px"></div>
          <div class="ov cards" id="cards" style="left:16px;top:184px;width:328px;height:372px">
            <div class="grid">${REASONS.map(r => `<div class="card${r.wide ? ' wide' : ''}" data-reason="${r.id}">
+             <div class="tick"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
              <div class="tile"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${r.icon}</svg></div>
              <h4>${r.t}</h4><p>${r.d}</p></div>`).join('')}</div></div>`,
     hot: [
@@ -517,7 +527,12 @@ document.querySelectorAll('.field').forEach(f => f.addEventListener('click', e =
   e.stopPropagation(); S.focus = f.dataset.f; render();
 }));
 document.querySelectorAll('.card').forEach(c => c.addEventListener('click', e => {
-  e.stopPropagation(); S.reason = c.dataset.reason; render();
+  e.stopPropagation();
+  const id = c.dataset.reason, on = S.reasons.includes(id);
+  if (on) S.reasons = S.reasons.filter(r => r !== id);
+  else if (id === 'none') S.reasons = ['none'];   // "No issue" can't sit alongside a problem
+  else S.reasons = S.reasons.filter(r => r !== 'none').concat(id);
+  render();
 }));
 
 // ───── Behaviour ─────
@@ -533,7 +548,7 @@ function countKey(k) {
 function confirmCount() {
   if (S.cases === '' && S.loose === '') { shake($('fCases')); shake($('fLoose')); return nope(); }
   S.counted = total();
-  S.reason = null;
+  S.reasons = [];
   if (Math.abs(diff()) <= TOLERANCE) { good(); go('success'); }
   else go('review');
 }
@@ -557,8 +572,8 @@ function checkDigitKey(k) {
 }
 
 function needReason() {
-  if (S.reason) return true;
-  shake($('cards')); nope(); toast('Pick a reason to continue', 'warn');
+  if (S.reasons.length) return true;
+  shake($('cards')); nope(); toast('Pick at least one reason', 'warn');
   return false;
 }
 
@@ -617,14 +632,15 @@ function render(typed) {
 
   // Reason
   $('reLess').textContent = `${d} units ${word}`;
-  document.querySelectorAll('.card').forEach(c => c.classList.toggle('sel', c.dataset.reason === S.reason));
+  document.querySelectorAll('.card').forEach(c => c.classList.toggle('sel', S.reasons.includes(c.dataset.reason)));
   document.querySelector('[data-reason="none"] p').textContent = `Nothing unusual; simply counted ${more() ? 'more' : 'fewer'} units.`;
 
   // Send
   $('sdDiff').textContent = (more() ? '+' : '-') + d;
   $('sdLabel').textContent = `units ${word}`;
   $('sdCounted').textContent = S.counted;
-  $('sdReason').textContent = (REASONS.find(r => r.id === S.reason) || {}).t || '';
+  const picked = REASONS.filter(r => S.reasons.includes(r.id)).map(r => r.t);
+  $('sdReason').textContent = picked.length > 1 ? `${picked[0]} +${picked.length - 1} more` : picked[0] || '';
 
   // Next bin
   $('nbClear').style.display = S.status ? 'none' : 'block';
