@@ -19,7 +19,8 @@
   body { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:16px; }
 
   /* ───── Stage: scales the whole handheld to fit the window ───── */
-  .stage { position:relative; width:460px; height:1180px; transform-origin:center; flex:none; }
+  .stage { position:relative; width:460px; height:1180px; transform-origin:center; flex:none;
+    -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }   /* no long-press image menu on phones */
 
   /* Laser beam projected out of the top scan window */
   .beam { position:absolute; left:50%; top:0; width:360px; height:186px;
@@ -80,12 +81,12 @@
     background:linear-gradient(115deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 28%); }
 
   .screen { position:absolute; inset:0; transition:transform .32s cubic-bezier(.2,.8,.2,1), opacity .32s ease; }
-  .screen img { display:block; width:360px; height:740px; user-select:none; -webkit-user-drag:none; }
+  .screen img { display:block; width:360px; height:740px; user-select:none; -webkit-user-drag:none; pointer-events:none; }
   .screen.hidden { opacity:0; pointer-events:none; }
   .screen.left { transform:translateX(-28%); }
   .screen.right { transform:translateX(28%); }
 
-  .hot { position:absolute; cursor:pointer; border-radius:14px; overflow:hidden; -webkit-tap-highlight-color:transparent; }
+  .hot { position:absolute; cursor:pointer; border-radius:14px; overflow:hidden; -webkit-tap-highlight-color:transparent; touch-action:none; }
   body.show-hot .hot, .device.flash .screen:not(.hidden) .hot {
     background:rgba(26,71,230,.18); outline:2px solid rgba(26,71,230,.7); }
   .ripple { position:absolute; border-radius:50%; background:rgba(0,0,0,.14); transform:scale(0); pointer-events:none;
@@ -818,6 +819,7 @@ function fit() {
   stage.style.transform = `scale(${s})`;
   stage.style.margin = `${(h * (s - 1)) / 2}px ${(w * (s - 1)) / 2}px`;
 }
+stage.addEventListener('contextmenu', e => e.preventDefault());   // holding a button must not open the browser menu
 addEventListener('resize', fit);
 fit();
 
