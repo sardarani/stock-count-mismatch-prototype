@@ -125,14 +125,12 @@
   .hint { font-size:12px; color:#6c727c; flex:none; max-width:520px; text-align:center; line-height:1.9; }
   .hint kbd { font:inherit; background:#2a2d34; border:1px solid #3a3e47; border-radius:4px; padding:1px 5px; color:#c9ccd2; }
 
-  /* ───── Phone: just the app screen, full width, no handheld shell ───── */
-  body.phone { padding:0; gap:10px; }
-  .phone .stage { width:360px; height:740px; }
-  .phone .handheld { left:0; top:0; width:360px; height:740px; border-radius:0; background:none; box-shadow:none; }
-  .phone .bezel { left:0; top:0; width:360px; height:740px; border-radius:0; background:none; box-shadow:none; }
-  .phone .device { left:0; top:0; border-radius:0; }
-  .phone .device::after, .phone .beam, .phone .bumper, .phone .scanwin, .phone .led, .phone .speaker, .phone .cam,
-  .phone .trigger, .phone .sidebtn, .phone .keys, .phone .charge, .phone .step, .phone #toggle, .phone .hint { display:none; }
+  /* ───── Phone: same handheld, less room for the laser so it can scale up ───── */
+  body.phone { padding:8px 0; gap:10px; }
+  .phone .stage { width:440px; height:1050px; }
+  .phone .handheld { left:10px; top:42px; }
+  .phone .beam { height:48px; }
+  .phone .step, .phone #toggle, .phone .hint { display:none; }
   .phone .controls { font-size:14px; gap:16px; }
   .phone .controls button { padding:8px 16px; }
 
@@ -810,12 +808,12 @@ document.addEventListener('keydown', e => {
 });
 
 // Scale the handheld to fit the window without altering the design
-// Phones get the bare app screen scaled to the viewport; larger screens get the handheld mockup
+// Phones trim the space above the handheld and drop the keyboard hints so the mockup fills more of the screen
 function fit() {
   const phone = innerWidth < 600;
   document.body.classList.toggle('phone', phone);
-  const [w, h] = phone ? [360, 740] : [460, 1180];
-  const s = phone ? Math.min(innerWidth / w, (innerHeight - 56) / h)
+  const [w, h] = phone ? [440, 1050] : [460, 1180];
+  const s = phone ? Math.min(innerWidth / w, (innerHeight - 60) / h)
                   : Math.min(1, (innerHeight - 130) / h, (innerWidth - 32) / w);
   stage.style.transform = `scale(${s})`;
   stage.style.margin = `${(h * (s - 1)) / 2}px ${(w * (s - 1)) / 2}px`;
