@@ -1,0 +1,25 @@
+{
+  "name": "stockpilot",
+  "version": "1.0.0",
+  "description": "Interactive prototype for the Accellor UX assignment: a warehouse worker scans bin 14-C-03, counts 96 against a system quantity of 120, reports the mismatch to a supervisor and moves on to the next bin.",
+  "main": "index.html",
+  "scripts": {
+    "build": "mkdir -p dist && cp node_modules/@vercel/analytics/dist/index.mjs dist/analytics.mjs",
+    "postinstall": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sardarani/stock-count-mismatch-prototype.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sardarani/stock-count-mismatch-prototype/issues"
+  },
+  "homepage": "https://github.com/sardarani/stock-count-mismatch-prototype#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
